@@ -5,8 +5,8 @@ import boto3
 from PIL import Image
 
 s3 = boto3.client('s3',
-                  aws_access_key_id="AKIAZ244M2OYUJU5QKFB",
-                  aws_secret_access_key="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")
+                  aws_access_key_id="#",
+                  aws_secret_access_key="#")
 
 bucket_url = "images/"
 
@@ -35,7 +35,7 @@ def resize_images():
                 new_image = resize_image.resize((720, 480))
             except FileNotFoundError:
                 print("Image does not exist")
-                
+
             try:
                 os.mkdir(f"c:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\processed_images\{resize_index}")
             
