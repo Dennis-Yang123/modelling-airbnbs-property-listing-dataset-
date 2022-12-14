@@ -39,11 +39,10 @@ def load_airbnb(label):
     features = clean_df.select_dtypes(include=["int", "float"])
     labels = features[label]
     features = features.drop(columns=["Unnamed: 0", "Unnamed: 19", label])
-    
     # print(labels)
     # print(features)
     data_tuple = (features, labels)
-    print(data_tuple)
+    # print(data_tuple)
     return(data_tuple)
 
 if __name__ == "__main__":
