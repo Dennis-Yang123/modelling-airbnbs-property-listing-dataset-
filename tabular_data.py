@@ -35,7 +35,7 @@ def clean_tabular_data(df):
     remove_rows_with_missing_ratings(df)
 
 def load_airbnb(label):
-    """ Separates features and labels from cleaned dataset
+    """ Separates features and labels from cleaned dataset 
     """
     clean_df = pd.read_csv(r"C:\Users\denni\Desktop\AiCore\Projects\tabular_data\clean_tabular_data.csv")
     features = clean_df.select_dtypes(include=["int", "float"])
