@@ -103,8 +103,8 @@ def save_model(folder, model, best_parameters, best_rmse):
         
         with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\best_model.json", "w") as f:
             json.dump(existing_data, f)
-    
 
+    
 def evaluate_all_models(model, dict_hyper):
     """Evaluates the model given a model and dictionary of hyperparameters as the argument
 
@@ -122,20 +122,30 @@ def evaluate_all_models(model, dict_hyper):
 
 
 def find_best_model():
-    pass
+    with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\best_model.json", "r") as f:
+            best_model_data = json.load(f)
+    best_model_data_dict = best_model_data
+    best_model_index = best_model_data_dict["Best Metrics"].index(min(best_model_data_dict["Best Metrics"]))
+    # print(best_model_index)
+    best_model = best_model_data_dict["Best Model"][best_model_index]
+    best_hyperparameters = best_model_data_dict["Best Parameters"][best_model_index]
+    best_metrics = best_model_data_dict["Best Metrics"][best_model_index]
 
+    print(f"The best model is {best_model}")
+    print(f"The best hyperparameters are {best_hyperparameters}")
+    print(f"The best metrics are {best_metrics}")
+
+    return eval(best_model), best_hyperparameters, best_metrics
 
 if __name__ == "__main__":  
     dict_hyper =  {
-    'n_estimators': [100, 200, 300],
-    'max_depth': [10, 20, 30],
-    'min_samples_split': [2, 3, 4],
-    'min_samples_leaf': [1, 2, 3],
-    'max_features': ['sqrt', 'log2']
+    'loss': ['squared_error', 'huber'],
+    'penalty': ['l2', 'l1', 'elasticnet'],
+    'alpha': [0.1, 0.01, 0.001],
 }
      #  Change this dictionary to the relevant model hyperparameters       
 
-    evaluate_all_models(RandomForestRegressor(), dict_hyper) # Change argument for what model you desire
-    # find_best_model()
-
+    # evaluate_all_models(RandomForestRegressor(), dict_hyper) # Change argument for what model you desire
+    best_model , best_hyperparameters, best_metrics = find_best_model()
+    
 # %%
