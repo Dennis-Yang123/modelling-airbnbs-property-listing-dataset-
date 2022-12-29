@@ -70,6 +70,7 @@ def save_model(folder, model, best_parameters, best_rmse):
     the folder already exists and overwrites it. Uses .dump() method
     to save the variables as .joblib and .json files.
     """
+    best_model = {"Best Model": [], "Best Parameters": [], "Best Metrics": []}
     try:
         os.mkdir(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\{folder}")
         joblib.dump(model, f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\{folder}\model.joblib")
@@ -79,6 +80,9 @@ def save_model(folder, model, best_parameters, best_rmse):
         
         with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\{folder}\metrics.json", "w") as f:
             json.dump(best_rmse, f)
+        
+        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\best_model.json", "w") as f:
+            json.dump(best_model, f)
 
     except FileExistsError:
         print("Folder or file already exists, will overwrite with new data")
@@ -90,6 +94,16 @@ def save_model(folder, model, best_parameters, best_rmse):
         with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\{folder}\metrics.json", "w") as f:
             json.dump(best_rmse, f)
 
+        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\best_model.json", "r") as f:
+            existing_data = json.load(f)
+        
+        new_data = {"Best Model": [str(model)], "Best Parameters": [best_parameters], "Best Metrics": [best_rmse]}
+        for key, values in new_data.items():
+            existing_data[key] += values
+        
+        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\best_model.json", "w") as f:
+            json.dump(existing_data, f)
+    
 
 def evaluate_all_models(model, dict_hyper):
     """Evaluates the model given a model and dictionary of hyperparameters as the argument
@@ -112,13 +126,16 @@ def find_best_model():
 
 
 if __name__ == "__main__":  
-    dict_hyper = {
-    'learning_rate': [0.1, 0.2, 0.3],
-    'n_estimators': [50, 100, 200],
-    'max_depth': [3, 4, 5]
-    } #  Change this dictionary to the relevant model hyperparameters       
+    dict_hyper =  {
+    'n_estimators': [100, 200, 300],
+    'max_depth': [10, 20, 30],
+    'min_samples_split': [2, 3, 4],
+    'min_samples_leaf': [1, 2, 3],
+    'max_features': ['sqrt', 'log2']
+}
+     #  Change this dictionary to the relevant model hyperparameters       
 
-    # evaluate_all_models(GradientBoostingRegressor(), dict_hyper) # Change argument for what model you desire
-    find_best_model()
+    evaluate_all_models(RandomForestRegressor(), dict_hyper) # Change argument for what model you desire
+    # find_best_model()
 
 # %%
