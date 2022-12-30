@@ -76,3 +76,6 @@ clean_df = pd.read_csv(r"C:\Users\denni\Desktop\AiCore\Projects\tabular_data\cle
     data_tuple = (features, labels) 
 ```
 From the code above you can see that I am creating the features data frame by using the `select.dtypes()` method to select the columns that were integer and float types. With the labels variable (argument of the function) I also remove it from the  features data frame and pass it to its own called `label`. After creating the two data frames I create the tuple variable `data_tuple = (features, labels)`.
+
+## Milestone 4
+For this milestone I was asked to make several different regression machine learning models and to tune the hyperparameters for the different models. The first model I trained was a `SGDRegressor` model. To tune the hyperparameters I passed in a dictionary of many different hyperparameters and used the `GridSearchCV`. After running the grid search it returned the score of 0.039. I have also done a similar process for `DecisionTreeRegressor`, `GradientBoostingRegressor` and `RandomForestRegressor` which have returned scores of 0.522, 0.489 and 0.561 respectively. This shows that the `SGDRegressor` is the best model due to having the lowest score.
