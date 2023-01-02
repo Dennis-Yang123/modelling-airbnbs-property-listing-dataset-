@@ -39,19 +39,25 @@ def load_airbnb(label):
     """
     clean_df = pd.read_csv(r"C:\Users\denni\Desktop\AiCore\Projects\tabular_data\clean_tabular_data.csv")
     features = clean_df.select_dtypes(include=["int", "float"])
-    labels = features[label]
-    features = features.drop(columns=["Unnamed: 0", "Unnamed: 19", label])
+    try:
+        labels = features[label]
+        features = features.drop(columns=["Unnamed: 0", "Unnamed: 19", label])
+    except KeyError:
+        labels = clean_df[label]
+        features = features.drop(columns=["Unnamed: 0", "Unnamed: 19"]) 
+
     # print(labels)
     # print(features)
     data_tuple = (features, labels)
     # print(data_tuple)
     return data_tuple 
+    
 
 if __name__ == "__main__":
     df = pd.read_csv(r"C:\Users\denni\Desktop\AiCore\Projects\tabular_data\listing.csv")
     # clean_tabular_data(df)
-    load_airbnb("Price_Night")
-
+    load_airbnb("Category")
+    
 
 
 # %%

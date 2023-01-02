@@ -12,9 +12,15 @@ import joblib
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.linear_model import LogisticRegression
+import pandas as pd
 
-training_data = load_airbnb("Price_Night")
+# training_data = load_airbnb("Price_Night")
+classification_training_data = load_airbnb("Category")
 np.random.seed(2)
+
+x_train, x_test, y_train, y_test = train_test_split(classification_training_data[0], classification_training_data[1], test_size=0.3, random_state=42)
+
 
 def custome_tune_regression_model_hyperparameters(model, features, label, dict_hyp):
     """Finds best hyperparameters without using GridSearchCV
@@ -113,7 +119,7 @@ def evaluate_all_models(model, dict_hyper):
     save_model function. Prints and returns the best parameters and
     rmse.
     """
-    best_parameters, best_rmse = tune_regression_model_hyperparameters(model, training_data[0], training_data[1], dict_hyper)
+    best_parameters, best_rmse = tune_regression_model_hyperparameters(model, classification_training_data[0], classification_training_data[1], dict_hyper)
     save_model(str(model), model, best_parameters, best_rmse)
     print(best_parameters)
     print(best_rmse)
@@ -146,6 +152,9 @@ if __name__ == "__main__":
      #  Change this dictionary to the relevant model hyperparameters       
 
     # evaluate_all_models(RandomForestRegressor(), dict_hyper) # Change argument for what model you desire
-    best_model , best_hyperparameters, best_metrics = find_best_model()
-    
+    # best_model , best_hyperparameters, best_metrics = find_best_model()
+    log_regression = LogisticRegression()
+    log_regression.fit(x_train, y_train)
+    y_pred = log_regression.predict(x_test)
+    print(y_pred)
 # %%
