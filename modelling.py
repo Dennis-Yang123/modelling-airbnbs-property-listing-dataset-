@@ -18,9 +18,6 @@ from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_sc
 training_data = load_airbnb("Category")
 np.random.seed(2)
 
-x_train, x_test, y_train, y_test = train_test_split(training_data[0], training_data[1], test_size=0.3, random_state=42)
-
-
 def custome_tune_regression_model_hyperparameters(model, features, label, dict_hyp):
     """Finds best hyperparameters without using GridSearchCV
 
@@ -142,27 +139,37 @@ def find_best_model():
 
     return eval(best_model), best_hyperparameters, best_metrics
 
-if __name__ == "__main__":  
-    dict_hyper =  {
-    'loss': ['squared_error', 'huber'],
-    'penalty': ['l2', 'l1', 'elasticnet'],
-    'alpha': [0.1, 0.01, 0.001],
-}
-     #  Change this dictionary to the relevant model hyperparameters       
-
-    # evaluate_all_models(RandomForestRegressor(), dict_hyper) # Change argument for what model you desire
-    # best_model , best_hyperparameters, best_metrics = find_best_model()
-    log_regression = LogisticRegression()
-    log_regression.fit(x_train, y_train)
-    y_pred = log_regression.predict(x_test)
-
+def tune_classification_model_hyperparameters(model, features, labels, dict_hyper):
+    grid_search = GridSearchCV(model, dict_hyper, cv=5)
+    grid_search.fit(features, labels)
+    x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=42)
+    best_hyperparameters = grid_search.best_params_
+    model.set_params(**best_hyperparameters)
+    model.fit(x_train, y_train)
+    
+    y_pred = model.predict(x_test)
     f1 = f1_score(y_test, y_pred, average="micro")
     precision = precision_score(y_test, y_pred, average='micro')
     recall = recall_score(y_test, y_pred, average='micro')
     accuracy = accuracy_score(y_test, y_pred)
 
-    print("F1 score: ", f1)
-    print("Precision: ", precision)
-    print("Recall: ", recall)
-    print("Accuracy: ", accuracy)
+    performance_dict = {"Best Model": grid_search.best_estimator_,
+                        "Best Parameters": best_hyperparameters,
+                        "validation_accuracy": accuracy, 
+                        "F1 Score": f1, 
+                        "Precision": precision,
+                        "Recall": recall
+    }
+    # print(performance_dict)
+
+    return performance_dict 
+
+if __name__ == "__main__":  
+    dict_hyper =  {'C': [0.001, 0.01, 0.1, 1, 10],
+                'penalty': ['l1', 'l2']}
+     #  Change this dictionary to the relevant model hyperparameters       
+
+    # evaluate_all_models(RandomForestRegressor(), dict_hyper) # Change argument for what model you desire
+    # best_model , best_hyperparameters, best_metrics = find_best_model()
+    tune_classification_model_hyperparameters(LogisticRegression(), training_data[0], training_data[1], dict_hyper)
   # %%
