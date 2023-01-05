@@ -1,0 +1,1 @@
+{"Best Model": ["LogisticRegression()"], "Best Parameters": [{"C": 0.1, "penalty": "l2"}], "Best Metrics": [{"Best Model": "LogisticRegression(C=0.1)", "Best Parameters": {"C": 0.1, "penalty": "l2"}, "validation_accuracy": 0.3253012048192771, "F1 Score": 0.3253012048192771, "Precision": 0.3253012048192771, "Recall": 0.3253012048192771}]}
