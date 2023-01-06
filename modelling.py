@@ -1,6 +1,6 @@
 # %%
 from tabular_data import load_airbnb
-from sklearn.linear_model import SGDRegressor
+from sklearn.linear_model import SGDRegressor, LogisticRegression
 from sklearn.model_selection import train_test_split
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -9,11 +9,10 @@ from sklearn.model_selection import GridSearchCV
 import os
 import json
 import joblib
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score
+
 
 training_data = load_airbnb("Category")
 np.random.seed(2)
@@ -78,14 +77,14 @@ def save_model(folder, model, best_parameters, best_metrics, par_dir):
     file_path = os.path.join("C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\", par_dir, "best_model.json")
 
     try:
-        os.makedirs(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\{folder}")
+        os.makedirs(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}")
         os.mkdir(os.path.dirname(file_path))
-        joblib.dump(model, f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\{folder}\model.joblib")
+        joblib.dump(model, f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\model.joblib")
 
-        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\{folder}\hyperparameters.json", "w") as f:
+        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\hyperparameters.json", "w") as f:
             json.dump(best_parameters, f)
         
-        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\{folder}\metrics.json", "w") as f:
+        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\metrics.json", "w") as f:
             json.dump(best_metrics, f)
         
         with open(file_path, "w") as f:
@@ -93,16 +92,13 @@ def save_model(folder, model, best_parameters, best_metrics, par_dir):
 
     except FileExistsError:
         print("Folder or file already exists, will overwrite with new data")
-        joblib.dump(model , f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\{folder}\model.joblib")
+        joblib.dump(model , f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\model.joblib")
 
-        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\{folder}\hyperparameters.json", "w") as f:
+        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\hyperparameters.json", "w") as f:
             json.dump(best_parameters, f)
         
-        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\{folder}\metrics.json", "w") as f:
+        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\metrics.json", "w") as f:
             json.dump(best_metrics, f)
-
-        with open(file_path, "w") as f:
-            json.dump(best_model, f)
 
         with open(file_path, "r") as f:
             existing_data = json.load(f)
@@ -115,27 +111,27 @@ def save_model(folder, model, best_parameters, best_metrics, par_dir):
             json.dump(existing_data, f)
     
     
-def evaluate_all_models(model, dict_hyper):
+def evaluate_all_models(model, model_dir, dict_hyper, model_folder):
     """Evaluates the model given a model and dictionary of hyperparameters as the argument
 
-    Gets the best parameters and rmse by calling the 
+    Gets the best parameters and metrics by calling the 
     tune_regression_model_hyperparameters function. Then calls the
     save_model function. Prints and returns the best parameters and
-    rmse.
+    metrics.
     """
-    best_parameters, best_rmse = tune_regression_model_hyperparameters(model, training_data[0], training_data[1], dict_hyper)
-    save_model(str(model), model, best_parameters, best_rmse)
-    print(best_parameters)
-    print(best_rmse)
+    performance_dict = tune_classification_model_hyperparameters(model, training_data[0], training_data[1], dict_hyper)
+    save_model(model_dir, model, performance_dict["Best Parameters"], performance_dict["validation_accuracy"], model_folder)
+    print(performance_dict["Best Parameters"])
+    print(performance_dict["validation_accuracy"])
 
-    return best_parameters, best_rmse
+    return performance_dict["Best Parameters"], performance_dict["validation_accuracy"]
 
 
 def find_best_model(model_filepath):
     with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{model_filepath}\\best_model.json", "r") as f:
             best_model_data = json.load(f)
     best_model_data_dict = best_model_data
-    best_model_index = best_model_data_dict["Best Metrics"].index(min(best_model_data_dict["Best Metrics"]))
+    best_model_index = best_model_data_dict["Best Metrics"].index(max(best_model_data_dict["Best Metrics"]))
     # print(best_model_index)
     best_model = best_model_data_dict["Best Model"][best_model_index]
     best_hyperparameters = best_model_data_dict["Best Parameters"][best_model_index]
@@ -161,7 +157,7 @@ def tune_classification_model_hyperparameters(model, features, labels, dict_hype
     recall = recall_score(y_test, y_pred, average='micro')
     accuracy = accuracy_score(y_test, y_pred)
 
-    performance_dict = {"Best Model": str(grid_search.best_estimator_),
+    performance_dict = {"Best Model": str(model),
                         "Best Parameters": best_hyperparameters,
                         "validation_accuracy": accuracy, 
                         "F1 Score": f1, 
@@ -173,12 +169,17 @@ def tune_classification_model_hyperparameters(model, features, labels, dict_hype
     return performance_dict 
 
 if __name__ == "__main__":  
-    dict_hyper =  {'C': [0.001, 0.01, 0.1, 1, 10],
-                'penalty': ['l1', 'l2']}
+    dict_hyper =  {
+    'learning_rate': [0.1, 0.2, 0.3],
+    'n_estimators': [50, 100, 200],
+    'max_depth': [3, 4, 5]
+}
+
      #  Change this dictionary to the relevant model hyperparameters       
 
     # evaluate_all_models(RandomForestRegressor(), dict_hyper) # Change argument for what model you desire
     # best_model , best_hyperparameters, best_metrics = find_best_model()
-    performance_dict = tune_classification_model_hyperparameters(LogisticRegression(), training_data[0], training_data[1], dict_hyper)
-    save_model("models\\classification\\logistic_regression", LogisticRegression(), performance_dict["Best Parameters"], performance_dict, "classification")
+    # performance_dict = tune_classification_model_hyperparameters(LogisticRegression(), training_data[0], training_data[1], dict_hyper)
+    # save_model("models\\classification\\logistic_regression", LogisticRegression(), performance_dict["Best Parameters"], performance_dict["validation_accuracy"], "classification")
+    evaluate_all_models(GradientBoostingClassifier(), "classification\\gradient_boosting", dict_hyper, "classification")
   # %%
