@@ -181,5 +181,6 @@ if __name__ == "__main__":
     # best_model , best_hyperparameters, best_metrics = find_best_model()
     # performance_dict = tune_classification_model_hyperparameters(LogisticRegression(), training_data[0], training_data[1], dict_hyper)
     # save_model("models\\classification\\logistic_regression", LogisticRegression(), performance_dict["Best Parameters"], performance_dict["validation_accuracy"], "classification")
-    evaluate_all_models(GradientBoostingClassifier(), "classification\\gradient_boosting", dict_hyper, "classification")
+    # evaluate_all_models(GradientBoostingClassifier(), "classification\\gradient_boosting", dict_hyper, "classification")
+    best_model, best_hyperparameters, best_metrics = find_best_model("classification")
   # %%
