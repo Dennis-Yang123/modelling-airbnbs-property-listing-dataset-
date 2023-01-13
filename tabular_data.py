@@ -57,6 +57,6 @@ if __name__ == "__main__":
     df = pd.read_csv(r"C:\Users\denni\Desktop\AiCore\Projects\tabular_data\listing.csv")
     # clean_tabular_data(df)
     # load_airbnb("Category")
- 
+    
 
 # %%
