@@ -43,6 +43,7 @@ class LinearRegression(torch.nn.Module):
         return self.linear_layer(features)
 
 def train(model, dataloader, epoch):
+    optimiser = torch.optim.SGD(model.parameters(), lr=0.0001)
     for epoch in range(epoch):
         for batch in dataloader:
             features, labels = batch
@@ -50,8 +51,12 @@ def train(model, dataloader, epoch):
             labels = labels.to(prediction.dtype)
             loss = F.mse_loss(prediction, labels)
             loss.backward()
-            break
+            print(loss.item())
+            optimiser.step()
+            optimiser.zero_grad()
+        
+        
 
 model = LinearRegression()
-train(model, train_loader, 9)
+train(model, train_loader, 20)
 # %%
