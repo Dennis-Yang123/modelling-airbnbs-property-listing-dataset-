@@ -6,6 +6,7 @@ from tabular_data import load_airbnb
 import numpy as np
 from sklearn.model_selection import train_test_split
 import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
 
 class AirbnbNightlyPriceImageDataset(Dataset):
     def __init__(self, features, label):
@@ -43,7 +44,9 @@ class LinearRegression(torch.nn.Module):
         return self.linear_layer(features)
 
 def train(model, dataloader, epoch):
-    optimiser = torch.optim.SGD(model.parameters(), lr=0.0001)
+    optimiser = torch.optim.SGD(model.parameters(), lr=0.00001)
+    batch_index = 0
+    writer = SummaryWriter()
     for epoch in range(epoch):
         for batch in dataloader:
             features, labels = batch
@@ -54,9 +57,11 @@ def train(model, dataloader, epoch):
             print(loss.item())
             optimiser.step()
             optimiser.zero_grad()
+            writer.add_scalar("loss", loss.item(), batch_index)
+            batch_index += 1
         
         
 
 model = LinearRegression()
-train(model, train_loader, 20)
+train(model, val_loader, 25)
 # %%
