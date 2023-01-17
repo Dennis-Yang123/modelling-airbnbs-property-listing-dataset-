@@ -1,4 +1,4 @@
-# %% 
+# %%
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 import torch
@@ -7,6 +7,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
+import yaml
+
 
 class AirbnbNightlyPriceImageDataset(Dataset):
     def __init__(self, features, label):
@@ -38,10 +40,15 @@ val_loader = DataLoader(val_dataset, batch_size=4, shuffle=True)
 class LinearRegression(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear_layer = torch.nn.Linear(9, 1)
+        self.layers = torch.nn.Sequential(
+            torch.nn.Linear(9,9),
+            torch.nn.ReLU(),
+            torch.nn.Linear(9,1)
+        )
+
 
     def forward(self, features):
-        return self.linear_layer(features)
+        return self.layers(features)
 
 def train(model, dataloader, epoch):
     optimiser = torch.optim.SGD(model.parameters(), lr=0.00001)
@@ -59,9 +66,16 @@ def train(model, dataloader, epoch):
             optimiser.zero_grad()
             writer.add_scalar("loss", loss.item(), batch_index)
             batch_index += 1
-        
-        
 
-model = LinearRegression()
-train(model, val_loader, 25)
+def get_nn_config():
+    with open(r"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\nn_config.yaml", "r") as file:
+        dict_hyper = yaml.safe_load(file)
+    
+    return dict_hyper
+        
+if __name__ == "__main__":
+    model = LinearRegression()
+    train(model, val_loader, 25)
+    dict_hyper = get_nn_config()
+    # print(dict_hyper)
 # %%
