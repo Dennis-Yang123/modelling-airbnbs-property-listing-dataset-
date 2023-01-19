@@ -38,20 +38,26 @@ test_loader = DataLoader(test_dataset, batch_size=4, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=4, shuffle=True)
 
 class LinearRegression(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
-        self.layers = torch.nn.Sequential(
-            torch.nn.Linear(9,9),
-            torch.nn.ReLU(),
-            torch.nn.Linear(9,1)
-        )
-
-
+        self.layers = torch.nn.Sequential()
+        self.layers.add_module("input_layer", torch.nn.Linear(9, config["hidden_layer_width"]))
+        self.layers.add_module("activation_layer", torch.nn.ReLU())
+        for i in range(config["model_depth"] - 1):
+            self.layers.add_module(f"hidden_layer_width", torch.nn.Linear(config["hidden_layer_width"], config["hidden_layer_width"]))
+            self.layers.add_module("output_layer", torch.nn.Linear(config["hidden_layer_width"], 1))
+    
     def forward(self, features):
         return self.layers(features)
 
-def train(model, dataloader, epoch):
-    optimiser = torch.optim.SGD(model.parameters(), lr=0.00001)
+def train(model, dataloader, epoch, config):
+    optimiser_name = config["optimiser"]
+    if optimiser_name == "SGD":
+        optimiser = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
+    elif optimiser_name == "Adam":
+        optimiser = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
+    else:
+        raise ValueError(f"Optimiser: {optimiser_name} not supported.")
     batch_index = 0
     writer = SummaryWriter()
     for epoch in range(epoch):
@@ -69,13 +75,13 @@ def train(model, dataloader, epoch):
 
 def get_nn_config():
     with open(r"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\nn_config.yaml", "r") as file:
-        dict_hyper = yaml.safe_load(file)
+        config = yaml.safe_load(file)
     
-    return dict_hyper
+    return config
         
 if __name__ == "__main__":
-    model = LinearRegression()
-    train(model, val_loader, 25)
-    dict_hyper = get_nn_config()
+    config = get_nn_config()
+    model = LinearRegression(config)
+    train(model, train_loader, 25, config)
     # print(dict_hyper)
 # %%
