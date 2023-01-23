@@ -8,7 +8,10 @@ from sklearn.model_selection import train_test_split
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 import yaml
-
+from modelling import save_model
+from sklearn.metrics import r2_score
+import time
+from datetime import datetime
 
 class AirbnbNightlyPriceImageDataset(Dataset):
     def __init__(self, features, label):
@@ -51,6 +54,8 @@ class LinearRegression(torch.nn.Module):
         return self.layers(features)
 
 def train(model, dataloader, epoch, config):
+    start_time = time.time()
+    dt_now = datetime.now()
     optimiser_name = config["optimiser"]
     if optimiser_name == "SGD":
         optimiser = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
@@ -60,28 +65,59 @@ def train(model, dataloader, epoch, config):
         raise ValueError(f"Optimiser: {optimiser_name} not supported.")
     batch_index = 0
     writer = SummaryWriter()
+    prediction_list = []
+    labels_list = []
+    num_predictions = 0
     for epoch in range(epoch):
         for batch in dataloader:
             features, labels = batch
             prediction = model(features)
+            prediction_list.append(prediction)
+            labels_list.append(labels.detach().numpy())
             labels = labels.to(prediction.dtype)
             loss = F.mse_loss(prediction, labels)
             loss.backward()
+            rmse_loss = torch.sqrt(loss)
             print(loss.item())
             optimiser.step()
             optimiser.zero_grad()
             writer.add_scalar("loss", loss.item(), batch_index)
             batch_index += 1
 
+    num_predictions += prediction.shape[0]
+
+    labels = np.concatenate(labels_list)
+    prediction_list = np.concatenate([pred.detach().numpy() for pred in prediction_list])    
+    r2 = r2_score(labels, prediction_list)
+
+    end_time = time.time()
+    total_time = end_time - start_time
+    dt_string = dt_now.strftime("%d_%m_%Y_%H-%M")
+    inference_latency = total_time / num_predictions
+    
+    best_metrics = {
+        "RMSE_loss": str(rmse_loss), 
+        "R_squared": str(r2), 
+        "training_duration": str(total_time),
+        "inference_latency": str(inference_latency)
+    }
+    
+    print(best_metrics)
+    return best_metrics, dt_string
+
+
 def get_nn_config():
     with open(r"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\nn_config.yaml", "r") as file:
         config = yaml.safe_load(file)
     
     return config
-        
+
 if __name__ == "__main__":
     config = get_nn_config()
     model = LinearRegression(config)
-    train(model, train_loader, 25, config)
-    # print(dict_hyper)
+    best_metrics, dt_string = train(model, train_loader, 25, config)
+    sd = str(model.state_dict())
+    save_model("neural_networks", model, sd, best_metrics, dt_string)
+    torch.save(model.state_dict(), f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\neural_networks\\{dt_string}\model.pt")
+
 # %%

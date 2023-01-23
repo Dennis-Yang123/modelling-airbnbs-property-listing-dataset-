@@ -12,7 +12,7 @@ import joblib
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score
-
+import torch
 
 training_data = load_airbnb("Category")
 np.random.seed(2)
@@ -76,39 +76,53 @@ def save_model(folder, model, best_parameters, best_metrics, par_dir):
     best_model = {"Best Model": [], "Best Parameters": [], "Best Metrics": []}
     file_path = os.path.join("C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\", par_dir, "best_model.json")
 
-    try:
-        os.makedirs(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}")
-        os.mkdir(os.path.dirname(file_path))
-        joblib.dump(model, f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\model.joblib")
-
-        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\hyperparameters.json", "w") as f:
-            json.dump(best_parameters, f)
+    if folder == "neural_networks":
+        subdir1 = "neural_networks"
+        subdir2 = par_dir
+        full_path = os.path.join("C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\", subdir1, subdir2)
         
-        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\metrics.json", "w") as f:
+        os.makedirs(full_path, exist_ok=True) 
+
+        with open(os.path.join(full_path, "hyperparameters.json"), "w") as f:
+            json.dump(best_parameters, f)
+                
+        with open(os.path.join(full_path, "metrics.json"), "w") as f:
             json.dump(best_metrics, f)
         
-        with open(file_path, "w") as f:
-            json.dump(best_model, f)
+    else:
+        try:
+            os.makedirs(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}")
+            os.mkdir(os.path.dirname(file_path))
+            joblib.dump(model, f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\model.joblib")
 
-    except FileExistsError:
-        print("Folder or file already exists, will overwrite with new data")
-        joblib.dump(model , f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\model.joblib")
+            with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\hyperparameters.json", "w") as f:
+                json.dump(best_parameters, f)
+            
+            with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\metrics.json", "w") as f:
+                json.dump(best_metrics, f)
+            
+            with open(file_path, "w") as f:
+                json.dump(best_model, f)
 
-        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\hyperparameters.json", "w") as f:
-            json.dump(best_parameters, f)
-        
-        with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\metrics.json", "w") as f:
-            json.dump(best_metrics, f)
+        except FileExistsError:
+            print("Folder or file already exists, will overwrite with new data")
+            joblib.dump(model , f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\model.joblib")
 
-        with open(file_path, "r") as f:
-            existing_data = json.load(f)
-        
-        new_data = {"Best Model": [str(model)], "Best Parameters": [best_parameters], "Best Metrics": [best_metrics]}
-        for key, values in new_data.items():
-            existing_data[key] += values
-        
-        with open(file_path, "w") as f:
-            json.dump(existing_data, f)
+            with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\hyperparameters.json", "w") as f:
+                json.dump(best_parameters, f)
+            
+            with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}\metrics.json", "w") as f:
+                json.dump(best_metrics, f)
+
+            with open(file_path, "r") as f:
+                existing_data = json.load(f)
+            
+            new_data = {"Best Model": [str(model)], "Best Parameters": [best_parameters], "Best Metrics": [best_metrics]}
+            for key, values in new_data.items():
+                existing_data[key] += values
+            
+            with open(file_path, "w") as f:
+                json.dump(existing_data, f)
     
     
 def evaluate_all_models(model, model_dir, dict_hyper, model_folder):
