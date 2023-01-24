@@ -12,6 +12,7 @@ from modelling import save_model
 from sklearn.metrics import r2_score
 import time
 from datetime import datetime
+import random
 
 class AirbnbNightlyPriceImageDataset(Dataset):
     def __init__(self, features, label):
@@ -112,12 +113,52 @@ def get_nn_config():
     
     return config
 
+def generate_nn_configs():
+    optimiser = ["SGD", "Adam"]
+    learning_rate = [0.001, 0.0001, 0.00001]
+    hidden_layer_width = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    model_depth = [1, 2, 3, 4]
+    config_list = []
+
+    for index in range(0,17):
+        
+        config_file = {
+        "optimiser": random.choice(optimiser),
+        "learning_rate": random.choice(learning_rate),
+        "hidden_layer_width": random.choice(hidden_layer_width),
+        "model_depth": random.choice(model_depth)
+    }
+        config_list.append(config_file)
+    
+    return config_list
+
+def find_best_nn(config_list):
+    # best_metric_list = []
+    best_r2 = -float("inf")
+    best_model = None
+    best_config = None
+    best_metrics_dict = None
+    for config in config_list:
+        model = LinearRegression(config)
+        best_metrics, dt_string = train(model, train_loader, 25, config)    
+
+    if best_metrics["R_squared"] > best_r2:
+        best_r2 = best_metrics["R_squared"]
+        best_model = model
+        best_config = config
+        best_metrics_dict = best_metrics
+
+    torch.save(best_model.state_dict(), f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\neural_networks\\{dt_string}\model.pt")
+
+    return best_config, best_metrics_dict, dt_string
+
 if __name__ == "__main__":
-    config = get_nn_config()
-    model = LinearRegression(config)
-    best_metrics, dt_string = train(model, train_loader, 25, config)
-    sd = str(model.state_dict())
-    save_model("neural_networks", model, sd, best_metrics, dt_string)
-    torch.save(model.state_dict(), f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\neural_networks\\{dt_string}\model.pt")
+    # config = get_nn_config()
+    # model = LinearRegression(config)
+    # best_metrics, dt_string = train(model, train_loader, 25, config)
+    
+    config_list = generate_nn_configs()
+    best_hyperparameters, best_metrics = find_best_nn(config_list)
+    save_model("neural_networks", None, best_hyperparameters, best_metrics, dt_string)
 
 # %%
