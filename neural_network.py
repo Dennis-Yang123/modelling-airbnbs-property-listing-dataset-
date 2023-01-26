@@ -42,7 +42,8 @@ train_loader = DataLoader(train_dataset, batch_size=4   , shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=4, shuffle=True)
 
-# class LinearRegression(torch.nn.Module):
+# Doesn't work incorrect channels/ wrong matrix dimensions
+# class LinearRegression(torch.nn.Module): 
 #     def __init__(self, config):
 #         super().__init__()
 #         self.layers = torch.nn.Sequential(
@@ -57,7 +58,6 @@ val_loader = DataLoader(val_dataset, batch_size=4, shuffle=True)
 #             self.layers.add_module("relu", torch.nn.ReLU())   
 
 #         self.layers.add_module("output_layer", torch.nn.Linear(config["hidden_layer_width"], 1))
-#         self.layers.add_module("Relu", torch.nn.ReLU())
 
 #     def forward(self, features):
 #         print(features.shape)
