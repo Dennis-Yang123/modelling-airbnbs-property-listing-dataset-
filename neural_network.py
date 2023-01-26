@@ -13,6 +13,7 @@ from sklearn.metrics import r2_score
 import time
 from datetime import datetime
 import random
+import os
 
 class AirbnbNightlyPriceImageDataset(Dataset):
     def __init__(self, features, label):
@@ -41,18 +42,42 @@ train_loader = DataLoader(train_dataset, batch_size=4   , shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=4, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=4, shuffle=True)
 
+# class LinearRegression(torch.nn.Module):
+#     def __init__(self, config):
+#         super().__init__()
+#         self.layers = torch.nn.Sequential(
+#             torch.nn.Conv1d(4, 4, 1),
+#             torch.nn.ReLU(),
+#             torch.nn.Conv1d(4, 9, 1),
+#             torch.nn.ReLU(),
+#             torch.nn.Flatten()
+#             )
+#         for i in range(config["model_depth"] - 1):
+#             self.layers.add_module("linear_layer", torch.nn.Linear(9, config["hidden_layer_width"]))
+#             self.layers.add_module("relu", torch.nn.ReLU())   
+
+#         self.layers.add_module("output_layer", torch.nn.Linear(config["hidden_layer_width"], 1))
+#         self.layers.add_module("Relu", torch.nn.ReLU())
+
+#     def forward(self, features):
+#         print(features.shape)
+#         print(self.layers(features))
+#         return self.layers(features)
+
 class LinearRegression(torch.nn.Module):
     def __init__(self, config):
         super().__init__()
         self.layers = torch.nn.Sequential()
-        self.layers.add_module("input_layer", torch.nn.Linear(9, config["hidden_layer_width"]))
+        self.layers.add_module("input_layer", torch.nn.Linear(9, 9))
         self.layers.add_module("activation_layer", torch.nn.ReLU())
-        for i in range(config["model_depth"] - 1):
-            self.layers.add_module(f"hidden_layer_width", torch.nn.Linear(config["hidden_layer_width"], config["hidden_layer_width"]))
-            self.layers.add_module("output_layer", torch.nn.Linear(config["hidden_layer_width"], 1))
+        for i in range(config["model_depth"] - 2):
+            self.layers.add_module(f"hidden_layer_width", torch.nn.Linear(9, config["hidden_layer_width"]))
+            self.layers.add_module("Relu", torch.nn.ReLU())
+        self.layers.add_module("output_layer", torch.nn.Linear(config["hidden_layer_width"], 1))
     
     def forward(self, features):
         return self.layers(features)
+
 
 def train(model, dataloader, epoch, config):
     start_time = time.time()
@@ -62,6 +87,10 @@ def train(model, dataloader, epoch, config):
         optimiser = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
     elif optimiser_name == "Adam":
         optimiser = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
+    elif optimiser_name == "Adagrad":
+        optimiser = torch.optim.Adagrad(model.parameters(), lr=config["learning_rate"])
+    elif optimiser_name == "Adadelta":
+        optimiser = torch.optim.Adadelta(model.parameters(), lr=config["learning_rate"])
     else:
         raise ValueError(f"Optimiser: {optimiser_name} not supported.")
     batch_index = 0
@@ -98,9 +127,9 @@ def train(model, dataloader, epoch, config):
     
     best_metrics = {
         "RMSE_loss": str(rmse_loss), 
-        "R_squared": str(r2), 
-        "training_duration": str(total_time),
-        "inference_latency": str(inference_latency)
+        "R_squared": r2, 
+        "training_duration": total_time,
+        "inference_latency": inference_latency
     }
     
     print(best_metrics)
@@ -114,10 +143,10 @@ def get_nn_config():
     return config
 
 def generate_nn_configs():
-    optimiser = ["SGD", "Adam"]
-    learning_rate = [0.001, 0.0001, 0.00001]
-    hidden_layer_width = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    model_depth = [1, 2, 3, 4]
+    optimiser = ["SGD", "Adam", "Adagrad", "Adadelta"]
+    learning_rate = [0.01, 0.001, 0.0001]
+    hidden_layer_width = [3, 4, 5, 6, 7, 8, 9]
+    model_depth = [3, 4, 5, 6]
     config_list = []
 
     for index in range(0,17):
@@ -129,7 +158,7 @@ def generate_nn_configs():
         "model_depth": random.choice(model_depth)
     }
         config_list.append(config_file)
-    
+    print(config_list)
     return config_list
 
 def find_best_nn(config_list):
@@ -142,15 +171,15 @@ def find_best_nn(config_list):
         model = LinearRegression(config)
         best_metrics, dt_string = train(model, train_loader, 25, config)    
 
-    if best_metrics["R_squared"] > best_r2:
-        best_r2 = best_metrics["R_squared"]
-        best_model = model
-        best_config = config
-        best_metrics_dict = best_metrics
+        if best_metrics["R_squared"] > best_r2:
+            best_r2 = best_metrics["R_squared"]
+            best_model = model
+            best_config = config
+            best_metrics_dict = best_metrics
 
-    torch.save(best_model.state_dict(), f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\neural_networks\\{dt_string}\model.pt")
-
-    return best_config, best_metrics_dict, dt_string
+    os.mkdir(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\neural_networks\{dt_string}")
+    torch.save(best_model.state_dict, f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\regression\\neural_networks\\{dt_string}\model.pt")
+    return best_config, best_metrics_dict, dt_string, best_model
 
 if __name__ == "__main__":
     # config = get_nn_config()
@@ -158,7 +187,6 @@ if __name__ == "__main__":
     # best_metrics, dt_string = train(model, train_loader, 25, config)
     
     config_list = generate_nn_configs()
-    best_hyperparameters, best_metrics = find_best_nn(config_list)
-    save_model("neural_networks", None, best_hyperparameters, best_metrics, dt_string)
-
+    best_hyperparameters, best_metrics, dt_string, best_model = find_best_nn(config_list)
+    save_model("neural_networks", best_model, best_hyperparameters, best_metrics, dt_string)
 # %%

@@ -89,6 +89,7 @@ def save_model(folder, model, best_parameters, best_metrics, par_dir):
         with open(os.path.join(full_path, "metrics.json"), "w") as f:
             json.dump(best_metrics, f)
         
+
     else:
         try:
             os.makedirs(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{folder}")

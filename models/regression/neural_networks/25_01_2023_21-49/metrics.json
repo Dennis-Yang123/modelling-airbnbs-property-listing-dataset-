@@ -1,0 +1,1 @@
+{"RMSE_loss": "tensor(84.2680, grad_fn=<SqrtBackward0>)", "R_squared": 0.015421678024168717, "training_duration": 19.877656936645508, "inference_latency": 9.938828468322754}

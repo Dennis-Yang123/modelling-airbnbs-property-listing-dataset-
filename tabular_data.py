@@ -49,14 +49,14 @@ def load_airbnb(label):
     # print(labels)
     # print(features)
     data_tuple = (features, labels)
-    # print(data_tuple)
+    print(data_tuple)
     return data_tuple 
     
 
 if __name__ == "__main__":
     df = pd.read_csv(r"C:\Users\denni\Desktop\AiCore\Projects\tabular_data\listing.csv")
     # clean_tabular_data(df)
-    # load_airbnb("Category")
+    load_airbnb("Price_Night")
     
 
 # %%
