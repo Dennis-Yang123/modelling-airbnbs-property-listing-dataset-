@@ -38,9 +38,9 @@ train_dataset = AirbnbNightlyPriceImageDataset(x_train, y_train)
 test_dataset = AirbnbNightlyPriceImageDataset(x_test, y_test)
 val_dataset = AirbnbNightlyPriceImageDataset(x_val, y_val)
 
-train_loader = DataLoader(train_dataset, batch_size=4   , shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=4, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=4, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=4)
+val_loader = DataLoader(val_dataset, batch_size=4)
 
 # Doesn't work incorrect channels/ wrong matrix dimensions
 # class LinearRegression(torch.nn.Module): 
