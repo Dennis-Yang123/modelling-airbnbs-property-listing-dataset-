@@ -1,0 +1,1 @@
+{"Avg RMSE_loss": "tensor(2726.4229, grad_fn=<DivBackward0>)", "R_squared": -0.01385957280307526, "training_duration": 5.466399431228638, "inference_latency": 0.18221331437428792}

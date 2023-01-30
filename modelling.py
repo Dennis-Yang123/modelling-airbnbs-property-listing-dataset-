@@ -143,6 +143,12 @@ def evaluate_all_models(model, model_dir, dict_hyper, model_folder):
 
 
 def find_best_model(model_filepath):
+    """Finds best model from the best_model.json
+
+    Loads in the best_model.json file which contains the metrics 
+    for all the models trained. Picks the model which has the 
+    best metrics and returns 
+    """
     with open(f"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\\models\\{model_filepath}\\best_model.json", "r") as f:
             best_model_data = json.load(f)
     best_model_data_dict = best_model_data
@@ -159,6 +165,14 @@ def find_best_model(model_filepath):
     return eval(best_model), best_hyperparameters, best_metrics
 
 def tune_classification_model_hyperparameters(model, features, labels, dict_hyper):
+    """Tunes the hyperparameters for classification models
+
+    Splits data into training and testing sets and uses 
+    GridSearchCV to carry out the tuning process. It also
+    calculates the accuracy F1 score, precision and recall metrics.
+    The function then returns a dictionary containing these values
+    and variables.
+    """
     grid_search = GridSearchCV(model, dict_hyper, cv=5)
     grid_search.fit(features, labels)
     x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=42)

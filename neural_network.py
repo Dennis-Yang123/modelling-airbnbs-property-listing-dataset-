@@ -42,50 +42,33 @@ train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=4)
 val_loader = DataLoader(val_dataset, batch_size=4)
 
-# Doesn't work incorrect channels/ wrong matrix dimensions
-# class LinearRegression(torch.nn.Module): 
-#     def __init__(self, config):
-#         super().__init__()
-#         self.layers = torch.nn.Sequential(
-#             torch.nn.Conv1d(4, 4, 1),
-#             torch.nn.ReLU(),
-#             torch.nn.Conv1d(4, 9, 1),
-#             torch.nn.ReLU(),
-#             torch.nn.Flatten()
-#             )
-#         for i in range(config["model_depth"] - 1):
-#             self.layers.add_module("linear_layer", torch.nn.Linear(9, config["hidden_layer_width"]))
-#             self.layers.add_module("relu", torch.nn.ReLU())   
-
-#         self.layers.add_module("output_layer", torch.nn.Linear(config["hidden_layer_width"], 1))
-
-#     def forward(self, features):
-#         print(features.shape)
-#         print(self.layers(features))
-#         return self.layers(features)
-
 class LinearRegression(torch.nn.Module):
     def __init__(self, config):
         super().__init__()
         self.layers = torch.nn.Sequential()
-        self.layers.add_module("input_layer", torch.nn.Linear(9, 9))
-        self.layers.add_module("activation_layer", torch.nn.ReLU())
-        for i in range(config["model_depth"] - 2):
-            self.layers.add_module(f"hidden_layer_width", torch.nn.Linear(9, config["hidden_layer_width"]))
+        self.layers.add_module("input_layer", torch.nn.Linear(9, config["hidden_layer_width"]))
+        self.layers.add_module("activation_function", torch.nn.ReLU())
+        for i in range(config["model_depth"] - 1):
+            self.layers.add_module(f"hidden_layer_width{i}", torch.nn.Linear(config["hidden_layer_width"], config["hidden_layer_width"]))
             self.layers.add_module("Relu", torch.nn.ReLU())
         self.layers.add_module("output_layer", torch.nn.Linear(config["hidden_layer_width"], 1))
-    
+        
     def forward(self, features):
         return self.layers(features)
 
 
 def train(model, dataloader, epoch, config):
+    """Training loop for the neural network
+
+    Chooses the optimiser to use based on the randomly generated
+    config. Trains model iteratively by the number given for the
+    epoch and 
+    """
     start_time = time.time()
     dt_now = datetime.now()
     optimiser_name = config["optimiser"]
-    if optimiser_name == "SGD":
-        optimiser = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
-    elif optimiser_name == "Adam":
+    
+    if optimiser_name == "Adam":
         optimiser = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
     elif optimiser_name == "Adagrad":
         optimiser = torch.optim.Adagrad(model.parameters(), lr=config["learning_rate"])
@@ -98,6 +81,7 @@ def train(model, dataloader, epoch, config):
     prediction_list = []
     labels_list = []
     num_predictions = 0
+    avg_rmse = 0
     for epoch in range(epoch):
         for batch in dataloader:
             features, labels = batch
@@ -107,8 +91,8 @@ def train(model, dataloader, epoch, config):
             labels = labels.to(prediction.dtype)
             loss = F.mse_loss(prediction, labels)
             loss.backward()
-            rmse_loss = torch.sqrt(loss)
-            print(loss.item())
+            avg_rmse += torch.sqrt(loss)
+            print(f"The MSE Loss: {loss.item()}")
             optimiser.step()
             optimiser.zero_grad()
             writer.add_scalar("loss", loss.item(), batch_index)
@@ -124,9 +108,9 @@ def train(model, dataloader, epoch, config):
     total_time = end_time - start_time
     dt_string = dt_now.strftime("%d_%m_%Y_%H-%M")
     inference_latency = total_time / num_predictions
-    
+    avg_rmse = avg_rmse / num_predictions
     best_metrics = {
-        "RMSE_loss": str(rmse_loss), 
+        "Avg RMSE_loss": str(avg_rmse), 
         "R_squared": r2, 
         "training_duration": total_time,
         "inference_latency": inference_latency
@@ -137,16 +121,26 @@ def train(model, dataloader, epoch, config):
 
 
 def get_nn_config():
+    """Loads config .yaml file from directory
+
+    """
     with open(r"C:\\Users\\denni\\Desktop\\AiCore\\Projects\\modelling-airbnbs-property-listing-dataset-\nn_config.yaml", "r") as file:
         config = yaml.safe_load(file)
     
     return config
 
 def generate_nn_configs():
-    optimiser = ["SGD", "Adam", "Adagrad", "Adadelta"]
+    """Randomly generates configs based on set list of values
+
+    Creates lists for the optimisers and different values for the
+    learning rate, hidden layer width and model depth. Then uses 
+    the random.choice to randomly select values for each key then
+    creates 16 different configs and returns them.
+    """
+    optimiser = ["Adam", "Adagrad", "Adadelta"]
     learning_rate = [0.01, 0.001, 0.0001]
-    hidden_layer_width = [3, 4, 5, 6, 7, 8, 9]
-    model_depth = [3, 4, 5, 6]
+    hidden_layer_width = [32, 64, 128, 256]
+    model_depth = [9, 10, 11, 12, 13, 14]
     config_list = []
 
     for index in range(0,17):
@@ -162,7 +156,15 @@ def generate_nn_configs():
     return config_list
 
 def find_best_nn(config_list):
-    # best_metric_list = []
+    """Finds best neural network from the different configs
+
+    Iterates and trains the model through the list of configs.
+    Initialises best model/r2/config/metric_dict then updates 
+    them as it is iterating over the list of configs. The function
+    then saves the best model into the specific directory and 
+    returns the best config and metric dictionary amongst other
+    variables.
+    """
     best_r2 = -float("inf")
     best_model = None
     best_config = None
