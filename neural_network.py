@@ -48,7 +48,7 @@ class LinearRegression(torch.nn.Module):
         self.layers = torch.nn.Sequential()
         self.layers.add_module("input_layer", torch.nn.Linear(9, config["hidden_layer_width"]))
         self.layers.add_module("activation_function", torch.nn.ReLU())
-        for i in range(config["model_depth"] - 1):
+        for i in range(config["model_depth"] - 2):
             self.layers.add_module(f"hidden_layer_width{i}", torch.nn.Linear(config["hidden_layer_width"], config["hidden_layer_width"]))
             self.layers.add_module("Relu", torch.nn.ReLU())
         self.layers.add_module("output_layer", torch.nn.Linear(config["hidden_layer_width"], 1))
