@@ -18,7 +18,7 @@ import os
 class AirbnbNightlyPriceImageDataset(Dataset):
     def __init__(self, features, label):
         super().__init__()
-        self.features, self.label = load_airbnb("Price_Night")
+        self.features, self.label = load_airbnb("beds")
     
     def __getitem__(self, index):
         return (torch.from_numpy(self.features.to_numpy()[index]).float(), self.label[index])
@@ -26,7 +26,7 @@ class AirbnbNightlyPriceImageDataset(Dataset):
     def __len__(self):
         return len(self.label)
 
-data = load_airbnb("Price_Night")
+data = load_airbnb("beds")
 # print(data[1])
 # print(len(data))
 x_train, x_test, y_train, y_test = train_test_split(data[0], data[1], test_size=0.2, random_state=42)

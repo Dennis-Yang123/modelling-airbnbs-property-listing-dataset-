@@ -170,3 +170,7 @@ In the training loop alongside training the model I am also saving the metrics f
 Using the `generate_nn_config` function I created 16 different config files defining different randomised hyperparameters to tune the model (optimiser, learning_rate, hidden_layer_width and model_depth). To find the best model from the 16 differently trained models I compared them each against the r2 score and chose the best model in the `find_best_nn` function. The hyperparameters of the best model I trainined were 
 
 `{"optimiser": "Adagrad", "learning_rate": 0.001, "hidden_layer_width": 128, "model_depth": 8}`
+
+The last task was to use the framework for another use-case with the Airbnb data. To reuse it I set the label to predict as the number of bedrooms. The best model trained to calculate the number of bedrooms had the following hyperparameters: 
+
+`{"optimiser": "Adagrad", "learning_rate": 0.0001, "hidden_layer_width": 256, "model_depth": 9}`
