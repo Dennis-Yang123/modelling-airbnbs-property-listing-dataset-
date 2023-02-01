@@ -8,7 +8,6 @@ def remove_rows_with_missing_ratings(df):
     # print(df_no_nan)
     combine_description_strings(df_no_nan)
     
-
 def combine_description_strings(df_no_nan):
     combine_list = [",", "About this space", "[", "]"]
     df_no_nan["Description"] = df_no_nan["Description"].str.replace('"', '')

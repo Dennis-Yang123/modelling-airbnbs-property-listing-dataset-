@@ -20,9 +20,6 @@ def download_images():
         for letter_index in range(len(alphabet)):
             download_url = url + "-" + str(alphabet[letter_index]) + ".png"
     # print(download_url)
-    # s3.download_file("airbnb-imagesz", "images/f9dcbd09-32ac-41d9-a0b1-fdb2793378cf/f9dcbd09-32ac-41d9-a0b1-fdb2793378cf-e.png", r"C:\Users\denni\Desktop\AiCore\Projects\modelling-airbnbs-property-listing-dataset-\processed_images\image.png")
-    # s3.download_file("airbnb-imagesz", "*", r"C:\Users\denni\Desktop\AiCore\Projects\images") > Will download entire S3 bucket. DO NOT RUN.
-    # Line above will download entire S3 bucket. DO NOT RUN.
 
 def resize_images():
     img_uuid_list = df["ID"]

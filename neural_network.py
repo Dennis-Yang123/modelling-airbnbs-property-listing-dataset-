@@ -184,10 +184,6 @@ def find_best_nn(config_list):
     return best_config, best_metrics_dict, dt_string, best_model
 
 if __name__ == "__main__":
-    # config = get_nn_config()
-    # model = LinearRegression(config)
-    # best_metrics, dt_string = train(model, train_loader, 25, config)
-    
     config_list = generate_nn_configs()
     best_hyperparameters, best_metrics, dt_string, best_model = find_best_nn(config_list)
     save_model("neural_networks", best_model, best_hyperparameters, best_metrics, dt_string)
